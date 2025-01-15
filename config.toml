@@ -1,0 +1,78 @@
+title = "活出生命的辽阔"
+base_url = "/"
+description = "Just a blog site"
+theme = "zola-bearblog"
+
+compile_sass = true
+build_search_index = false
+
+taxonomies = [
+  { name = "categories", feed = true },
+  { name = "tags", feed = true },
+]
+
+default_language = "zh"
+
+[translations]
+no_posts = "暂无博文"
+remove_filter = "Remove filter"
+filtering_for = "Filtering for"
+made_with = "Made with"
+table_of_contents = "Table of contents"
+language = "language"
+site = "site"
+
+[languages.en]
+title = "Zola ʕ•ᴥ•ʔ Bear Blog"
+description = "Ein Zola-theme basiert auf Bear Blog."
+
+taxonomies = [
+  { name = "categories", feed = true },
+  { name = "tags", feed = true },
+]
+
+[languages.en.translations]
+no_posts = "No posts yet"
+remove_filter = "Remove filter"
+filtering_for = "Filtering for"
+made_with = "Made with"
+table_of_contents = "Table of contents"
+language = "language"
+site = "site"
+
+[markdown]
+highlight_code = false
+
+[extra]
+date_format = "%Y-%m-%d"
+webserver_sends_csp_headers = true
+language_switcher = true
+translations = [
+  { code = "en", name = "EN" },
+  { code = "zh", name = "简中" },
+]
+
+[extra.table_of_contents]
+show = true
+max_level = 2
+visible_on_load = true
+
+[[extra.main_menu]]
+name = "主页"
+name_en = "Home"
+url = "@/_index.md"
+
+[[extra.main_menu]]
+name = "项目"
+name_en = "Projects"
+url = "@/projects.md"
+
+[[extra.main_menu]]
+name = "简历"
+name_en = "resume"
+url = "@/resume.md"
+
+[[extra.main_menu]]
+name = "博文"
+name_en = "Blog"
+url = "@/blog/_index.md"
