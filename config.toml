@@ -1,7 +1,6 @@
 title = "活出生命的辽阔"
 base_url = "/"
 description = "Just a blog site"
-theme = "zola-bearblog"
 
 compile_sass = true
 build_search_index = false
