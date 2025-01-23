@@ -44,6 +44,7 @@ site = "site"
 highlight_code = true
 
 [extra]
+favicon = "/wow.ico"
 date_format = "%Y-%m-%d"
 webserver_sends_csp_headers = true
 language_switcher = true
