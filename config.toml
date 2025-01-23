@@ -44,6 +44,7 @@ highlight_code = true
 
 [extra]
 favicon = "/wow.ico"
+hide_made_with_line = true
 date_format = "%Y-%m-%d"
 webserver_sends_csp_headers = true
 language_switcher = true
