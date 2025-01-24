@@ -1,8 +1,17 @@
 <header>
-  {%- include "language_switcher.html" %}
-  <a href="{{ get_url(path="@/_index.md", lang=lang) }}" class="title">
-    <h1>{{ config.title }}</h1>
-  </a>
+  <div class="top-row">
+    <div class="header-content">
+      <div class="avatar">
+        <img src="{{ get_url(path='images/avatar.svg') }}" alt="头像">
+      </div>
+      <a href="{{ get_url(path="@/_index.md", lang=lang) }}" class="title">
+        <h1>{{ config.title }}</h1>
+      </a>
+    </div>
+    <div class="language-switcher">
+      {%- include "language_switcher.html" %}
+    </div>
+  </div>
   <nav aria-label="{{ trans(key="site", lang=lang)}}">
     {%- include "nav.html" %}
   </nav>
