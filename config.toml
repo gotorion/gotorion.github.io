@@ -1,6 +1,8 @@
 title = "活出生命的辽阔"
-base_url = "/"
+base_url = "https://gotorion.fun"
 description = "Just a blog site"
+generate_robots_txt = true
+generate_sitemap = true
 
 compile_sass = true
 build_search_index = false
@@ -82,4 +84,9 @@ url = "@/blog/_index.md"
 name = "关于"
 name_en = "About"
 url = "@/about.md"
+
+# SEO相关配置
+author = "gotorion"
+keywords = "C++, Rust, Linux"
+robots = "index, follow"  # 可选，默认值已在模板中设置
 

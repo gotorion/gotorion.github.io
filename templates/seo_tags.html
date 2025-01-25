@@ -1,2 +1,35 @@
-<meta name="title" content="{% if page.title %}{{ page.title }}{% else %}{{ config.title }}{% endif %}">
-<meta name="description" content="{{ config.description }}">
+{%- if page %}
+    {%- set description = page.description | default(value=config.description) %}
+    {%- set title = page.title %}
+{%- else %}
+    {%- set description = config.description %}
+    {%- set title = config.title %}
+{%- endif %}
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="{{ description }}">
+<meta name="author" content="{{ config.extra.author | default(value=config.title) }}">
+<meta name="keywords" content="{{ config.extra.keywords | default(value="") }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+{%- if current_url %}
+<meta property="og:url" content="{{ current_url | safe }}">
+{%- endif %}
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+{%- if current_url %}
+<meta property="twitter:url" content="{{ current_url | safe }}">
+{%- endif %}
+<meta property="twitter:title" content="{{ title }}">
+<meta property="twitter:description" content="{{ description }}">
+
+<!-- Robots -->
+{%- if config.extra.robots %}
+<meta name="robots" content="{{ config.extra.robots }}">
+{%- else %}
+<meta name="robots" content="index, follow">
+{%- endif %}
