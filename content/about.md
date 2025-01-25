@@ -14,6 +14,16 @@ extra.hide_table_of_contents = true
 - 音乐，民谣摇滚乡村之类都听，我最喜欢ColdPlay;
 - 美食，辣锅是我的最爱;
 
+
+## 编程语言
+- 生产水准：C++、Rust
+- 业余水准：Python、Lua、Elisp
+
+## 电脑硬件
+- 笔记本：MacBook Pro 14 M3 Pro
+- 台式机：拯救者刃7000K + 32G + 1T SSD
+- 开发环境：Neovim + Arch WSL
+
 ### 最近在做的
 - 坚持健身房打卡;
 - 使用ESP32开发板做LED桌搭;
