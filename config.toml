@@ -22,7 +22,7 @@ language = "语言"
 site = "站点"
 
 [languages.en]
-title = "Zola ʕ•ᴥ•ʔ Bear Blog"
+title = "VAST LIFE"
 description = "Ein Zola-theme basiert auf Bear Blog."
 
 taxonomies = [
@@ -77,3 +77,9 @@ url = "@/resume.md"
 name = "博文"
 name_en = "Blog"
 url = "@/blog/_index.md"
+
+[[extra.main_menu]]
+name = "关于"
+name_en = "About"
+url = "@/about.md"
+

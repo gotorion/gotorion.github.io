@@ -1,5 +1,6 @@
 +++
 title = "aaa"
+extra.hide_table_of_contents = true
 +++
 
 Webseite: [https://bearblog.dev](https://bearblog.dev)
