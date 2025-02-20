@@ -1,6 +1,6 @@
 +++
 title = "LevelDB 源码剖析之符号导出"
-date = "2025-02-15"
+date = "2025-02-20"
 description = "Leveldb"
 taxonomies.tags = [
     "leveldb",
@@ -46,7 +46,7 @@ taxonomies.tags = [
 - Linux平台通过attribute的`visibility`控制，可选为`hidden`和`default`；
 - Win32平台使用`dllexport`和`dllimport`共同控制符号导出，`__declspec(dllexport)`标记需要导出的符号，`__declspec(dllimport)`标记该符号需要从其他dll或exe中导入；
 
-PS：在Windows平台上默认是不导出符号的，需要通过`dllexport`显示导出；Linux上默认导出所有非静态符号，需要通过`__attribute__((visibility("hidden")))`显示隐藏。
+PS：在Windows平台上默认是不导出符号的，需要通过`dllexport`显式导出；Linux上默认导出所有非静态符号，需要通过`__attribute__((visibility("hidden")))`显式隐藏。
 
 # 查看符号表
 平时开发我一般会使用`readelf`和`nm`命令配合`grep`等命令查找，查找资料才了解到有`dlopen`等系列系统调用可以解析动态库，不过目前工作中没有使用场景，暂时留个坑。
