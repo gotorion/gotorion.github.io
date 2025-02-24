@@ -43,6 +43,7 @@ site = "site"
 
 [markdown]
 highlight_code = true
+highlight_theme = "inspired-github"
 
 [extra]
 favicon = "/love.svg"
