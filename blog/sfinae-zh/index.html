@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="shortcut icon" href="&#x2F;love.svg"><title>C++ Template之SFINAE | 活出生命的辽阔</title>
+  
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="C++ SFINAE">
+<meta name="author" content="活出生命的辽阔">
+<meta name="keywords" content="">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gotorion.fun/blog/sfinae-zh/">
+<meta property="og:title" content="C++ Template之SFINAE">
+<meta property="og:description" content="C++ SFINAE">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://gotorion.fun/blog/sfinae-zh/">
+<meta property="twitter:title" content="C++ Template之SFINAE">
+<meta property="twitter:description" content="C++ SFINAE">
+
+<!-- Robots -->
+<meta name="robots" content="index, follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="preload" href="&#x2F;fonts&#x2F;LXGWWenKai-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="&#x2F;css&#x2F;style.css">
+</head>
+<body>
+  <header>
+  <div class="top-row">
+    <div class="header-content">
+      <div class="avatar">
+        <img src="https://gotorion.fun/images/ava.jpg" alt="头像">
+      </div>
+      <a href="https://gotorion.fun/" class="title">
+        <h1>活出生命的辽阔</h1>
+      </a>
+    </div>
+    <div class="language-switcher">
+  <nav class="lang" aria-label="语言">
+        <a href="https://gotorion.fun/en/blog/sfinae-zh/" hreflang="en" lang="en">EN</a>
+        <span class="active">简中</span>
+  </nav>
+    </div>
+  </div>
+  <nav aria-label="站点">
+      <a href="https://gotorion.fun/">主页</a>
+      <a href="https://gotorion.fun/projects/">项目</a>
+      <a href="https://gotorion.fun/resume/">简历</a>
+      <a href="https://gotorion.fun/blog/">博文</a>
+      <a href="https://gotorion.fun/about/">关于</a>
+  </nav>
+</header>
+<h1>C++ Template之SFINAE</h1>
+      <p>
+        <i>
+          <time datetime="2025-02-27T00:00:00+00:00" pubdate>2025-02-27</time>
+        </i>
+      </p>
+    <details open>
+      <summary>目录</summary>
+    <ul>
+        <li>
+          <a href="https://gotorion.fun/blog/sfinae-zh/#background">Background</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/sfinae-zh/#intro">Intro</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/sfinae-zh/#into-sfinae">Into SFINAE</a>
+        <ul>
+            <li>
+              <a href="https://gotorion.fun/blog/sfinae-zh/#shi-yong-std-enable-if">使用std::enable_if</a>
+            </li>
+            <li>
+              <a href="https://gotorion.fun/blog/sfinae-zh/#decltype-declval">decltype &amp; declval</a>
+            </li>
+            <li>
+              <a href="https://gotorion.fun/blog/sfinae-zh/#void-t">void_t</a>
+            </li>
+            <li>
+              <a href="https://gotorion.fun/blog/sfinae-zh/#constexpr">constexpr</a>
+            </li>
+            <li>
+              <a href="https://gotorion.fun/blog/sfinae-zh/#c-20-xin-shi-dai">C++20，新时代</a>
+            </li>
+        </ul>
+        </li>
+    </ul>
+    </details>
+  <main>
+    <h1 id="background">Background</h1>
+<p>最近面试了几位拥有3年以上经历的工程师，简历上都写了熟悉STL标准库及模板编程，不过问到类型萃取和SFINAE之类的点都不怎么了解。虽说技术服务于业务，应用开发对模板要求并不高，不过多了解些模板能加深对标准库的理解。借此契机写点简单的demo介绍一下SFINAE这个Tricky的机制。</p>
+<h1 id="intro">Intro</h1>
+<p>SFINAE[Substitution failure is not an error]意思是当编译器遇到模板参数不匹配的情况下，会自动跳过匹配失败的模板，继续查找符合的模板。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#969896;">// foo.hpp
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>Foo {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">typedef int </span><span>fooType;
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">bool </span><span style="font-weight:bold;color:#795da3;">test_foo</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T::fooType) { </span><span style="font-style:italic;color:#969896;">// Defination #1
+</span><span>  </span><span style="font-style:italic;color:#969896;">// only if T has a nested type fooType
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">return </span><span style="color:#0086b3;">true</span><span>;
+</span><span>}
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">bool </span><span style="font-weight:bold;color:#795da3;">test_foo</span><span>(T) { </span><span style="font-weight:bold;color:#a71d5d;">return </span><span style="color:#0086b3;">false</span><span>; }  </span><span style="font-style:italic;color:#969896;">// Defination #2
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">inline void </span><span style="font-weight:bold;color:#795da3;">test1</span><span>() {
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(test_foo&lt;Foo&gt;(</span><span style="color:#0086b3;">1</span><span>));
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">!</span><span>test_foo&lt;</span><span style="font-weight:bold;color:#a71d5d;">int</span><span>&gt;(</span><span style="color:#0086b3;">1</span><span>)); </span><span style="font-style:italic;color:#969896;">// compile error if #2 was deleted
+</span><span>}
+</span></code></pre>
+<p>上面的代码中共定义了两个版本的<code>test_foo</code>函数模板，#1要求模板参数T必须拥有内嵌类型<code>fooType</code>，因此<code>test_foo&lt;Foo&gt;</code>会优先匹配#1。实际的查找过程如下：</p>
+<ol>
+<li>根据调用进行<a href="https://en.cppreference.com/w/cpp/language/lookup">Name Loopup</a>；</li>
+<li>查找到#1，进行参数类型替换，并加入到解析集中；</li>
+<li>查找到#2，参数类型不符合，从解析集中删除；</li>
+<li>如果解析集为空，编译失败；</li>
+<li>如果解析集中有匹配的函数，根据参数类型找到最匹配的函数；</li>
+</ol>
+<p>借助这一特性可以在编译器做一些决断，例如判断模板类型T是否有内嵌类型，是否有指定成员函数之类。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#969896;">// run.hpp
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>Human {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">eat</span><span>() {}
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) {}
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>Robot {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">charge</span><span>() {}
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) {} </span><span style="font-style:italic;color:#969896;">// if delete this method, assert fails
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>has_run {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> U, </span><span style="font-weight:bold;color:#a71d5d;">void </span><span>(U::</span><span style="font-weight:bold;color:#a71d5d;">*</span><span>)(</span><span style="font-weight:bold;color:#a71d5d;">double</span><span>)&gt; </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>SFINAE {};
+</span><span>
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> U&gt; </span><span style="font-weight:bold;color:#a71d5d;">static char </span><span style="font-weight:bold;color:#795da3;">test</span><span>(SFINAE&lt;U, </span><span style="font-weight:bold;color:#a71d5d;">&amp;</span><span>U::run&gt; </span><span style="font-weight:bold;color:#a71d5d;">*</span><span>); </span><span style="font-style:italic;color:#969896;">// #1
+</span><span>
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> U&gt; </span><span style="font-weight:bold;color:#a71d5d;">static int </span><span style="font-weight:bold;color:#795da3;">test</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">...</span><span>); </span><span style="font-style:italic;color:#969896;">// #2
+</span><span>
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">static constexpr bool</span><span> value </span><span style="font-weight:bold;color:#a71d5d;">= sizeof</span><span>(test&lt;T&gt;(</span><span style="color:#0086b3;">nullptr</span><span>)) </span><span style="font-weight:bold;color:#a71d5d;">== sizeof</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">char</span><span>);
+</span><span>};
+</span><span>
+</span><span style="font-style:italic;color:#969896;">// used a lot in type_traits
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">constexpr bool</span><span> has_run_v </span><span style="font-weight:bold;color:#a71d5d;">=</span><span> has_run&lt;T&gt;::value; </span><span style="font-style:italic;color:#969896;">// #3
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">inline void </span><span style="font-weight:bold;color:#795da3;">test</span><span>() {
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(has_run&lt;Human&gt;::value);
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(has_run&lt;Robot&gt;::value);
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(has_run_v&lt;Human&gt;);
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(has_run_v&lt;Robot&gt;);
+</span><span>}
+</span></code></pre>
+<p>上例中定义了一个<code>has_run</code>模板检测T类型是否有<code>run</code>方法，SFINAE模板中模板第二个参数是一个参数类型为double的成员函数指针。如果T类型定义了<code>run</code>方法，<code>test&lt;T&gt;(nullptr)</code>会匹配返回类型为char的<code>test</code>方法，从而使得<code>value = true</code>。</p>
+<blockquote>
+<p>在C++17前，如果要判断<code>template&lt;typename T1, typename T2&gt;</code>中的T1、T2是否为相同类型，通常需要使用<code>std::is_same&lt;T1, T2&gt;::value</code>的形式，新版本中则可以使用<code>std::is_same_v&lt;T1, T2&gt;</code>，底层实现类似#3处的定义，并没有什么magic。</p>
+</blockquote>
+<h1 id="into-sfinae">Into SFINAE</h1>
+<h2 id="shi-yong-std-enable-if">使用std::enable_if</h2>
+<p>上面的写法过于繁琐，C++11引入了<code>enable_if</code>，其定义如下：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt; </span><span style="font-weight:bold;color:#a71d5d;">bool</span><span> B, </span><span style="font-weight:bold;color:#a71d5d;">class</span><span> T </span><span style="font-weight:bold;color:#a71d5d;">= void </span><span>&gt; </span><span style="font-style:italic;color:#969896;">// 第一个参数是bool类型
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if;
+</span></code></pre>
+<p>这里先给出简单demo，再解释其参数的含义。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">struct </span><span>Human {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">static constexpr bool</span><span> has_run </span><span style="font-weight:bold;color:#a71d5d;">= </span><span style="color:#0086b3;">true</span><span>;
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">eat</span><span>() {}
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) {}
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>Robot {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">static constexpr bool</span><span> has_run </span><span style="font-weight:bold;color:#a71d5d;">= </span><span style="color:#0086b3;">false</span><span>;
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">charge</span><span>() {}
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>has_run {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">static constexpr bool</span><span> value </span><span style="font-weight:bold;color:#a71d5d;">=</span><span> T::has_run;
+</span><span>};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">constexpr bool</span><span> has_run_v </span><span style="font-weight:bold;color:#a71d5d;">=</span><span> has_run&lt;T&gt;::value;
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T, </span><span style="font-weight:bold;color:#a71d5d;">typename =</span><span> std::enable_if_t&lt;has_run_v&lt;T&gt;&gt;&gt; </span><span style="font-style:italic;color:#969896;">// #1
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(T </span><span style="font-weight:bold;color:#a71d5d;">&amp;</span><span>t, </span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) {
+</span><span>  t.run(speed);
+</span><span>}
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T, </span><span style="font-weight:bold;color:#a71d5d;">typename =</span><span> std::enable_if_t&lt;</span><span style="font-weight:bold;color:#a71d5d;">!</span><span>has_run_v&lt;T&gt;&gt;,
+</span><span>          </span><span style="font-weight:bold;color:#a71d5d;">typename = void</span><span>&gt; </span><span style="font-style:italic;color:#969896;">// #2
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(T </span><span style="font-weight:bold;color:#a71d5d;">&amp;</span><span>t, </span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) {
+</span><span>  </span><span style="font-style:italic;color:#969896;">// do nothing
+</span><span>}
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">inline void </span><span style="font-weight:bold;color:#795da3;">test</span><span>() {
+</span><span>  Human h;
+</span><span>  run(h, </span><span style="color:#0086b3;">1</span><span>);
+</span><span>
+</span><span>  Robot r;
+</span><span>  run(r, </span><span style="color:#0086b3;">1</span><span>); </span><span style="font-style:italic;color:#969896;">// Should compile and do nothing
+</span><span>}
+</span></code></pre>
+<p>这里将SFINAE修改为内置<code>has_run</code>tag的方式进行类型萃取，简化部分代码。下面定义了两个<code>run</code>函数，两个模板参数个数不同，防止重定义，如果删除#2处的<code>typename = void</code>，由于两个模板函数的模版参数列表和函数参数列表完全相同，编译器将无法区分。</p>
+<p>为了理解<code>enable_if</code>的原理，需要参考源码：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span>  </span><span style="font-style:italic;color:#969896;">/// Alias template for enable_if
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">bool</span><span> _Cond, </span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> _Tp </span><span style="font-weight:bold;color:#a71d5d;">= void</span><span>&gt;
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>enable_if_t </span><span style="font-weight:bold;color:#a71d5d;">= typename</span><span> enable_if&lt;_Cond, _Tp&gt;::type
+</span><span>      </span><span style="font-style:italic;color:#969896;">/// Define a member typedef `type` only if a boolean constant is true.
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">bool</span><span>, </span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> _Tp </span><span style="font-weight:bold;color:#a71d5d;">= void</span><span>&gt;
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if
+</span><span>    { };
+</span><span>  </span><span style="font-style:italic;color:#969896;">// Partial specialization for true.
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> _Tp&gt;
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if&lt;</span><span style="color:#0086b3;">true</span><span>, _Tp&gt;
+</span><span>    { </span><span style="font-weight:bold;color:#a71d5d;">typedef</span><span> _Tp type; };
+</span></code></pre>
+<p>在我们的demo中，<code>Human</code>类具有<code>run</code>方法，且我们未在<code>enable_if_t</code>中指定第二个模板参数的类型，因此<code>has_run_v&lt;Human&gt;</code>匹配为<code>enable_if&lt;true, void&gt;::type</code>, 实际偏特化后为</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if&lt;</span><span style="color:#0086b3;">true</span><span>, </span><span style="font-weight:bold;color:#a71d5d;">void</span><span>&gt;
+</span><span>{
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">typedef void </span><span>type;
+</span><span>}
+</span></code></pre>
+<p>在使用<code>Robot</code>类调用<code>run</code>函数时，<code>has_run_v&lt;Robot&gt;</code>为false，#1, #2处的<code>enable_if_t</code>实例化后为</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if { } </span><span style="font-style:italic;color:#969896;">// #1
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>enable_if&lt;</span><span style="color:#0086b3;">true</span><span>, Robot&gt; { </span><span style="font-style:italic;color:#969896;">// #2
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">typedef</span><span> Robot type;
+</span><span>}
+</span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;Robot, Robot, </span><span style="font-weight:bold;color:#a71d5d;">void</span><span>&gt; </span><span style="font-style:italic;color:#969896;">// #2
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">run</span><span>(Robot </span><span style="font-weight:bold;color:#a71d5d;">&amp; </span><span>t, </span><span style="font-weight:bold;color:#a71d5d;">double </span><span>speed) { }
+</span></code></pre>
+<p>此时#1的第二个模板参数typename = ?，无法找到对应的type，如果把#2删掉，这里就会报错。<code>enable_if</code>正是根据这种内嵌类型<code>type</code>的存在进行匹配。</p>
+<h2 id="decltype-declval">decltype &amp; declval</h2>
+<p><code>decltype</code>用于编译时类型推导，其参数是一个表达式。<code>decltype</code>返回该表达式的类型，但不会对表达式进行求值。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">class </span><span style="color:#0086b3;">Test </span><span>{
+</span><span style="font-weight:bold;color:#a71d5d;">public</span><span>:
+</span><span>  </span><span style="font-weight:bold;color:#795da3;">Test</span><span>() { std::cout </span><span style="font-weight:bold;color:#a71d5d;">&lt;&lt; </span><span style="color:#183691;">&quot;Test constructor</span><span style="color:#0086b3;">\n</span><span style="color:#183691;">&quot;</span><span>; }
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">static</span><span> Test </span><span style="font-weight:bold;color:#795da3;">build</span><span>() { Test(); }
+</span><span>};
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">func</span><span>() {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>tType </span><span style="font-weight:bold;color:#a71d5d;">= decltype</span><span>(Test::build()); </span><span style="font-style:italic;color:#969896;">// no contruct
+</span><span>  tType t;
+</span><span>}
+</span><span style="font-style:italic;color:#969896;">// output: Test constructor
+</span></code></pre>
+<p>假如Test类没有public的默认构造函数<code>decltype</code>会推导失败。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">class </span><span style="color:#0086b3;">Test </span><span>{
+</span><span style="font-weight:bold;color:#a71d5d;">private</span><span>:
+</span><span>  </span><span style="font-weight:bold;color:#795da3;">Test</span><span>() </span><span style="font-weight:bold;color:#a71d5d;">= delete</span><span>;
+</span><span>};
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">func</span><span>() { </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>tType </span><span style="font-weight:bold;color:#a71d5d;">= decltype</span><span>(Test()); } </span><span style="font-style:italic;color:#969896;">// error
+</span></code></pre>
+<p>使用<code>std::declval</code>可解决这个问题，<code>std::declval</code>可以在类型没有默认构造函数时进行推导，它的作用是返回一个类型为<code>T&amp;&amp;</code>的Fake对象，并允许推导该类型的成员函数。</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">class </span><span style="color:#0086b3;">Test </span><span>{
+</span><span style="font-weight:bold;color:#a71d5d;">private</span><span>:
+</span><span>  </span><span style="font-weight:bold;color:#795da3;">Test</span><span>() </span><span style="font-weight:bold;color:#a71d5d;">= delete</span><span>;
+</span><span>};
+</span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">func</span><span>() { </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>tType </span><span style="font-weight:bold;color:#a71d5d;">= decltype</span><span>(std::declval&lt;Test&gt;()); } </span><span style="font-style:italic;color:#969896;">// success! tType = Test
+</span></code></pre>
+<p>借助以上工具，可以写出以下代码检测类型是否具有某成员函数：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt;
+</span><span style="font-weight:bold;color:#a71d5d;">auto </span><span style="font-weight:bold;color:#795da3;">test_func</span><span>() -&gt; </span><span style="font-weight:bold;color:#a71d5d;">decltype</span><span>(std::declval&lt;T&gt;().charge(), </span><span style="font-weight:bold;color:#a71d5d;">void</span><span>()) {
+</span><span>  std::cout </span><span style="font-weight:bold;color:#a71d5d;">&lt;&lt; </span><span style="color:#183691;">&quot;T has charge method</span><span style="color:#0086b3;">\n</span><span style="color:#183691;">&quot;</span><span>;
+</span><span>}
+</span><span>
+</span><span>test_func&lt;Robot&gt;(); </span><span style="font-style:italic;color:#969896;">// output: T has charge method
+</span></code></pre>
+<p>注意C++中逗号表达式的值是最后一个逗号后表达式的值，因此<code>test_func</code>的返回值类型是<code>decltype(void())</code>，由于<code>decltype</code>参数要求是表达式，所以需要写<code>void()</code>而非<code>void</code>。</p>
+<h2 id="void-t">void_t</h2>
+<p>先看定义，简单来说<code>void_t</code>的作用就是将任意参数类型转换为<code>void</code>类型：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">#if</span><span> __cplusplus &gt;= 201703L || !</span><span style="font-weight:bold;color:#a71d5d;">defined</span><span>(__STRICT_ANSI__) </span><span style="font-style:italic;color:#969896;">// c++17 or gnu++11
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>__cpp_lib_void_t </span><span style="color:#0086b3;">201411</span><span style="font-weight:bold;color:#a71d5d;">L
+</span><span>  </span><span style="font-style:italic;color:#969896;">/// A metafunction that always yields void, used for detecting valid types.
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename...</span><span>&gt; </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>void_t </span><span style="font-weight:bold;color:#a71d5d;">= void</span><span>;
+</span><span style="font-weight:bold;color:#a71d5d;">#endif
+</span><span>
+</span><span>  </span><span style="font-style:italic;color:#969896;">/// integral_constant
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">template</span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> _Tp, _Tp __v&gt;
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>integral_constant
+</span><span>    {
+</span><span>      </span><span style="font-weight:bold;color:#a71d5d;">static constexpr</span><span> _Tp                  value </span><span style="font-weight:bold;color:#a71d5d;">=</span><span> __v;
+</span><span>      </span><span style="font-weight:bold;color:#a71d5d;">typedef</span><span> _Tp                           value_type;
+</span><span>      </span><span style="font-weight:bold;color:#a71d5d;">typedef</span><span> integral_constant&lt;_Tp, __v&gt;   type;
+</span><span>      </span><span style="font-weight:bold;color:#a71d5d;">constexpr operator </span><span style="font-weight:bold;color:#795da3;">value_type</span><span>() </span><span style="font-weight:bold;color:#a71d5d;">const noexcept </span><span>{ </span><span style="font-weight:bold;color:#a71d5d;">return</span><span> value; }
+</span><span style="font-weight:bold;color:#a71d5d;">#if</span><span> __cplusplus &gt; 201103L
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>__cpp_lib_integral_constant_callable </span><span style="color:#0086b3;">201304</span><span style="font-weight:bold;color:#a71d5d;">L
+</span><span>
+</span><span>      </span><span style="font-weight:bold;color:#a71d5d;">constexpr</span><span> value_type </span><span style="font-weight:bold;color:#795da3;">operator()</span><span>() </span><span style="font-weight:bold;color:#a71d5d;">const noexcept </span><span>{ </span><span style="font-weight:bold;color:#a71d5d;">return</span><span> value; }
+</span><span style="font-weight:bold;color:#a71d5d;">#endif
+</span><span>    };
+</span><span>
+</span><span>  </span><span style="font-style:italic;color:#969896;">/// The type used as a compile-time boolean with true value.
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>true_type </span><span style="font-weight:bold;color:#a71d5d;">=</span><span>  integral_constant&lt;</span><span style="font-weight:bold;color:#a71d5d;">bool</span><span>, </span><span style="color:#0086b3;">true</span><span>&gt;;
+</span><span>
+</span><span>  </span><span style="font-style:italic;color:#969896;">/// The type used as a compile-time boolean with false value.
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">using </span><span>false_type </span><span style="font-weight:bold;color:#a71d5d;">=</span><span> integral_constant&lt;</span><span style="font-weight:bold;color:#a71d5d;">bool</span><span>, </span><span style="color:#0086b3;">false</span><span>&gt;;
+</span></code></pre>
+<p>借助以上工具，模板可以再次更新：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#969896;">// check.hpp
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T, </span><span style="font-weight:bold;color:#a71d5d;">typename = void</span><span>&gt; </span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>check_run : </span><span style="color:#0086b3;">std::false_type </span><span>{}; </span><span style="font-style:italic;color:#969896;">// #1
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-style:italic;color:#969896;">// #2
+</span><span style="font-weight:bold;color:#a71d5d;">struct </span><span>check_run&lt;T, std::void_t&lt;</span><span style="font-weight:bold;color:#a71d5d;">decltype</span><span>(std::declval&lt;T&gt;().run(</span><span style="color:#0086b3;">1</span><span>))&gt;&gt; </span><span style="font-style:italic;color:#969896;">// just a random number, does&#39;t important
+</span><span>    : </span><span style="color:#0086b3;">std::true_type </span><span>{};
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">inline void </span><span style="font-weight:bold;color:#795da3;">check</span><span>() {
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(check_run&lt;Human&gt;::value);
+</span><span>  </span><span style="color:#62a35c;">assert</span><span>(check_run&lt;Robot&gt;::value); </span><span style="font-style:italic;color:#969896;">// failed
+</span><span>}
+</span></code></pre>
+<p>在使用<code>Human</code>类进行匹配时，#1可以成功推导<code>T = Human</code>，#2可以推导<code>T = Human</code>且使用以上工具推导第二个模版参数为<code>void</code>，此时两个模板都能成功推导，编译器会选择一个最合适的偏特化进行匹配。
+在使用<code>Robot</code>类进行匹配时，只有#1可以成功推导，因此<code>check_run&lt;Robot&gt;::value</code>为false。</p>
+<h2 id="constexpr">constexpr</h2>
+<p>C++17中<code>constexpr</code>不仅可以定义编译器常量，更可以用在模板中用于编译器分支选择，对于上面的用例，更简单的写法如下：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt; </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">check_human</span><span>() {
+</span><span>  </span><span style="font-weight:bold;color:#a71d5d;">if constexpr </span><span>(has_run_v&lt;T&gt;) {
+</span><span>    std::cout </span><span style="font-weight:bold;color:#a71d5d;">&lt;&lt; </span><span style="color:#183691;">&quot;T has run method</span><span style="color:#0086b3;">\n</span><span style="color:#183691;">&quot;</span><span>;
+</span><span>  } </span><span style="font-weight:bold;color:#a71d5d;">else </span><span>{
+</span><span>    std::cout </span><span style="font-weight:bold;color:#a71d5d;">&lt;&lt; </span><span style="color:#183691;">&quot;T does not have run method</span><span style="color:#0086b3;">\n</span><span style="color:#183691;">&quot;</span><span>;
+</span><span>  }
+</span><span>}
+</span></code></pre>
+<h2 id="c-20-xin-shi-dai">C++20，新时代</h2>
+<p>C++20引入了<code>concept</code>和<code>require</code>的机制，让C++开发者可以丢弃<code>enable_if</code>这种复杂且丑陋的语法，直接看代码：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;</span><span style="font-weight:bold;color:#a71d5d;">typename</span><span> T&gt;
+</span><span>concept has_run_method </span><span style="font-weight:bold;color:#a71d5d;">= </span><span>requires(T t) { t.run(</span><span style="color:#0086b3;">1</span><span>); };
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">template </span><span>&lt;has_run_method T&gt; </span><span style="font-weight:bold;color:#a71d5d;">void </span><span style="font-weight:bold;color:#795da3;">runrunrun</span><span>(T </span><span style="font-weight:bold;color:#a71d5d;">&amp;&amp;</span><span>t) {
+</span><span>  t.run(</span><span style="color:#0086b3;">1</span><span>);
+</span><span>  std::cout </span><span style="font-weight:bold;color:#a71d5d;">&lt;&lt; </span><span style="color:#183691;">&quot;T has run method</span><span style="color:#0086b3;">\n</span><span style="color:#183691;">&quot;</span><span>;
+</span><span>}
+</span></code></pre>
+<p>这里直接用<code>concept</code>约束T类型必须有<code>run</code>方法，
+<code>concept</code>的约束初看类似Rust中的<code>Trait bound</code>，不过还略微有些不同。日后可以写篇文章单独分析一下。</p>
+<pre data-lang="rust" style="background-color:#ffffff;color:#323232;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="font-weight:bold;color:#a71d5d;">trait </span><span>Comparable {
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">fn </span><span style="font-weight:bold;color:#795da3;">less_than</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">&amp;</span><span>self, other: </span><span style="font-weight:bold;color:#a71d5d;">&amp;Self</span><span>) -&gt; </span><span style="font-weight:bold;color:#a71d5d;">bool</span><span>;
+</span><span>    </span><span style="font-weight:bold;color:#a71d5d;">fn </span><span style="font-weight:bold;color:#795da3;">equals</span><span>(</span><span style="font-weight:bold;color:#a71d5d;">&amp;</span><span>self, other: </span><span style="font-weight:bold;color:#a71d5d;">&amp;Self</span><span>) -&gt; </span><span style="font-weight:bold;color:#a71d5d;">bool</span><span>;
+</span><span>}
+</span><span>
+</span><span style="font-weight:bold;color:#a71d5d;">fn </span><span style="font-weight:bold;color:#795da3;">sort</span><span>&lt;T: Comparable&gt;(vec: </span><span style="font-weight:bold;color:#a71d5d;">&amp;mut </span><span style="color:#0086b3;">Vec</span><span>&lt;T&gt;) {
+</span><span>    vec.</span><span style="color:#62a35c;">sort_by</span><span>(|a, b| a.</span><span style="color:#62a35c;">less_than</span><span>(b) </span><span style="font-weight:bold;color:#a71d5d;">|| !</span><span>b.</span><span style="color:#62a35c;">equals</span><span>(a));
+</span><span>}
+</span></code></pre>
+
+  </main>
+  <p>
+        Tags:
+          <a href="https://gotorion.fun/tags/c/">#C++</a>
+  </p>
+<footer>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+ 
+  <span id="busuanzi_container_site_pv">
+      本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  </span>
+</footer>
+</body>
+</html>

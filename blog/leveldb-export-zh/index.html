@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="shortcut icon" href="&#x2F;love.svg"><title>LevelDB 源码剖析之符号导出 | 活出生命的辽阔</title>
+  
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="Leveldb">
+<meta name="author" content="活出生命的辽阔">
+<meta name="keywords" content="">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gotorion.fun/blog/leveldb-export-zh/">
+<meta property="og:title" content="LevelDB 源码剖析之符号导出">
+<meta property="og:description" content="Leveldb">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:url" content="https://gotorion.fun/blog/leveldb-export-zh/">
+<meta property="twitter:title" content="LevelDB 源码剖析之符号导出">
+<meta property="twitter:description" content="Leveldb">
+
+<!-- Robots -->
+<meta name="robots" content="index, follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="preload" href="&#x2F;fonts&#x2F;LXGWWenKai-Regular.ttf" as="font" type="font/ttf" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="&#x2F;css&#x2F;style.css">
+</head>
+<body>
+  <header>
+  <div class="top-row">
+    <div class="header-content">
+      <div class="avatar">
+        <img src="https://gotorion.fun/images/ava.jpg" alt="头像">
+      </div>
+      <a href="https://gotorion.fun/" class="title">
+        <h1>活出生命的辽阔</h1>
+      </a>
+    </div>
+    <div class="language-switcher">
+  <nav class="lang" aria-label="语言">
+        <a href="https://gotorion.fun/en/blog/leveldb-export-zh/" hreflang="en" lang="en">EN</a>
+        <span class="active">简中</span>
+  </nav>
+    </div>
+  </div>
+  <nav aria-label="站点">
+      <a href="https://gotorion.fun/">主页</a>
+      <a href="https://gotorion.fun/projects/">项目</a>
+      <a href="https://gotorion.fun/resume/">简历</a>
+      <a href="https://gotorion.fun/blog/">博文</a>
+      <a href="https://gotorion.fun/about/">关于</a>
+  </nav>
+</header>
+<h1>LevelDB 源码剖析之符号导出</h1>
+      <p>
+        <i>
+          <time datetime="2025-02-20T00:00:00+00:00" pubdate>2025-02-20</time>
+        </i>
+      </p>
+    <details open>
+      <summary>目录</summary>
+    <ul>
+        <li>
+          <a href="https://gotorion.fun/blog/leveldb-export-zh/#background">Background</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/leveldb-export-zh/#qu-bie-sheng-ming-he-fu-hao">区别声明和符号</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/leveldb-export-zh/#kong-zhi-fu-hao-ke-jian-xing-de-you-dian">控制符号可见性的优点</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/leveldb-export-zh/#linux-win32kong-zhi-fu-hao-ke-jian-xing">Linux&#x2F;Win32控制符号可见性</a>
+        </li>
+        <li>
+          <a href="https://gotorion.fun/blog/leveldb-export-zh/#cha-kan-fu-hao-biao">查看符号表</a>
+        </li>
+    </ul>
+    </details>
+  <main>
+    <h1 id="background">Background</h1>
+<p>在开发公司项目使用FastDDS的时候看到如下代码：</p>
+<pre data-lang="cpp" style="background-color:#ffffff;color:#323232;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-weight:bold;color:#a71d5d;">#if defined</span><span>(_WIN32)
+</span><span style="font-weight:bold;color:#a71d5d;">#if defined</span><span>(EPROSIMA_ALL_DYN_LINK) || </span><span style="font-weight:bold;color:#a71d5d;">defined</span><span>(FASTCDR_DYN_LINK)
+</span><span style="font-weight:bold;color:#a71d5d;">#if defined</span><span>(fastcdr_EXPORTS)
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>Cdr_DllAPI </span><span style="font-weight:bold;color:#a71d5d;">__declspec</span><span>( </span><span style="color:#0086b3;">dllexport </span><span>)
+</span><span style="font-weight:bold;color:#a71d5d;">#else
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>Cdr_DllAPI </span><span style="font-weight:bold;color:#a71d5d;">__declspec</span><span>( </span><span style="color:#0086b3;">dllimport </span><span>)
+</span><span style="font-weight:bold;color:#a71d5d;">#endif </span><span style="font-style:italic;color:#969896;">// FASTCDR_SOURCE
+</span><span style="font-weight:bold;color:#a71d5d;">#else
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>Cdr_DllAPI
+</span><span style="font-weight:bold;color:#a71d5d;">#endif </span><span style="font-style:italic;color:#969896;">// if defined(EPROSIMA_ALL_DYN_LINK) || defined(FASTCDR_DYN_LINK)
+</span><span style="font-weight:bold;color:#a71d5d;">#else
+</span><span style="font-weight:bold;color:#a71d5d;">#define </span><span>Cdr_DllAPI
+</span><span style="font-weight:bold;color:#a71d5d;">#endif </span><span style="font-style:italic;color:#969896;">// _WIN32
+</span></code></pre>
+<p>不过我入职以来学习的开发方式一直都是提供接口头文件和库文件给使用者，不是很清楚为什么需要单独导出符号。今天阅读leveldb源码的时候看到<a href="https://github.com/google/leveldb/blob/main/include/leveldb/export.h">export.h</a>中类似snippets如下，特此研究。</p>
+<h1 id="qu-bie-sheng-ming-he-fu-hao">区别声明和符号</h1>
+<p>首先需要了解程序编译的过程：</p>
+<ul>
+<li>编译阶段：头文件提供了函数和类的声明，让编译器知道这些符号存在；</li>
+<li>链接阶段：链接器需要找到符号的实现；</li>
+</ul>
+<p>对于动态库，只有被显式导出的符号才会被放入符号表，否则链接阶段会出现未定义错误。基于以上可知，声明的符号是在两个阶段作用的，虽然头文件中包含了声明，
+依然可以通过设置符号可见性控制调用者的使用。</p>
+<h1 id="kong-zhi-fu-hao-ke-jian-xing-de-you-dian">控制符号可见性的优点</h1>
+<ul>
+<li>在程序链接的库较多时可以减少冲突并隐藏部分内部方法，类型于开发库的时候加一个<code>details</code>的namespace防止污染。</li>
+<li>导出符号过多会导致动态库的导出表增大，从而影响库文件体积和加载速度。</li>
+</ul>
+<h1 id="linux-win32kong-zhi-fu-hao-ke-jian-xing">Linux/Win32控制符号可见性</h1>
+<ul>
+<li>Linux平台通过attribute的<code>visibility</code>控制，可选为<code>hidden</code>和<code>default</code>；</li>
+<li>Win32平台使用<code>dllexport</code>和<code>dllimport</code>共同控制符号导出，<code>__declspec(dllexport)</code>标记需要导出的符号，<code>__declspec(dllimport)</code>标记该符号需要从其他dll或exe中导入；</li>
+</ul>
+<p>PS：在Windows平台上默认是不导出符号的，需要通过<code>dllexport</code>显式导出；Linux上默认导出所有非静态符号，需要通过<code>__attribute__((visibility("hidden")))</code>显式隐藏。</p>
+<h1 id="cha-kan-fu-hao-biao">查看符号表</h1>
+<p>平时开发我一般会使用<code>readelf</code>和<code>nm</code>命令配合<code>grep</code>等命令查找，查找资料才了解到有<code>dlopen</code>等系列系统调用可以解析动态库，不过目前工作中没有使用场景，暂时留个坑。</p>
+
+  </main>
+  <p>
+        Tags:
+          <a href="https://gotorion.fun/tags/leveldb/">#leveldb</a>
+  </p>
+<footer>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+ 
+  <span id="busuanzi_container_site_pv">
+      本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  </span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>VAST LIFE - Tools</title>
+    <subtitle>Ein Zola-theme basiert auf Bear Blog.</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://gotorion.fun/en/tags/tools/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://gotorion.fun"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2025-02-20T00:00:00+00:00</updated>
+    <id>https://gotorion.fun/en/tags/tools/atom.xml</id>
+    <entry xml:lang="en">
+        <title>My App Defaults</title>
+        <published>2025-02-20T00:00:00+00:00</published>
+        <updated>2025-02-20T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://gotorion.fun/en/blog/app-defaults/"/>
+        <id>https://gotorion.fun/en/blog/app-defaults/</id>
+        
+        <content type="html" xml:base="https://gotorion.fun/en/blog/app-defaults/">&lt;h1 id=&quot;background&quot;&gt;Background&lt;&#x2F;h1&gt;
+&lt;p&gt;Insipired by &lt;a href=&quot;https:&#x2F;&#x2F;defaults.rknight.me&#x2F;&quot;&gt;App Defaults&lt;&#x2F;a&gt;&lt;&#x2F;p&gt;
+&lt;h1 id=&quot;lists&quot;&gt;Lists&lt;&#x2F;h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Browser: Chrome(Windows), Safari(Apple platform)&lt;&#x2F;li&gt;
+&lt;li&gt;Password: Bitwarden + iCloud Keychain&lt;&#x2F;li&gt;
+&lt;li&gt;Todolist: Things3(Personal) + Trello(Work)&lt;&#x2F;li&gt;
+&lt;li&gt;Mail: Gmail&lt;&#x2F;li&gt;
+&lt;li&gt;Mail Client: Spark&lt;&#x2F;li&gt;
+&lt;li&gt;Presention: &lt;a href=&quot;https:&#x2F;&#x2F;cn.sli.dev&#x2F;guide&#x2F;&quot;&gt;Slide Dev&lt;&#x2F;a&gt;&lt;&#x2F;li&gt;
+&lt;li&gt;Music: Spotify + Apple Mustic&lt;&#x2F;li&gt;
+&lt;li&gt;News: HackerNews + Reddit&lt;&#x2F;li&gt;
+&lt;li&gt;Podcasts: Apple podcasts&lt;&#x2F;li&gt;
+&lt;li&gt;Chat: Wechat + Telegram&lt;&#x2F;li&gt;
+&lt;li&gt;Cloud File: Google Drive + iCloud Drive&lt;&#x2F;li&gt;
+&lt;li&gt;Notes: Obsidian(PC+Mac) + Apple notes(ios)&lt;&#x2F;li&gt;
+&lt;li&gt;Calendar: Apple calendar&lt;&#x2F;li&gt;
+&lt;li&gt;Photo Gallery: Apple photos&lt;&#x2F;li&gt;
+&lt;li&gt;Code Editor: VSCode + Neovim&lt;&#x2F;li&gt;
+&lt;li&gt;Blog: vercel + zola&lt;&#x2F;li&gt;
+&lt;&#x2F;ul&gt;
+</content>
+        
+    </entry>
+</feed>
